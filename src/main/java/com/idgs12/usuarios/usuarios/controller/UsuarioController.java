@@ -24,4 +24,12 @@ public class UsuarioController {
         return usuarioService.saveUsuarioConProgramas(usuarioDTO);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<UsuarioEntity> actualizarUsuario( @PathVariable int id, @RequestBody UsuarioDTO usuarioDTO) {
+        usuarioDTO.setId(id);
+        UsuarioEntity updated = usuarioService.saveUsuarioConProgramas(usuarioDTO);
+        return ResponseEntity.ok(updated);
+    }
+
+
 }
