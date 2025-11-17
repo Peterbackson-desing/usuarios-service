@@ -5,6 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.idgs12.usuarios.usuarios.dto.UsuarioDTO;
+
+import com.idgs12.usuarios.usuarios.dto.ProgramaDTO;
+import com.idgs12.usuarios.usuarios.dto.UsuarioDTO;
+import com.idgs12.usuarios.usuarios.dto.UsuarioResponseDTO;
 import com.idgs12.usuarios.usuarios.repository.UsuarioRepository;
 import com.idgs12.usuarios.usuarios.repository.ProgramaUsuarioRepository;
 import com.idgs12.usuarios.usuarios.FeignClient.ProgramaFeignClient;
@@ -23,6 +27,40 @@ public class UsuarioService {
 
     @Autowired
     private ProgramaFeignClient programaFeignClient;
+
+    
+    public List<UsuarioResponseDTO> getAllUsuariosDTO() {
+        return usuarioRepository.findAll().stream().map(usuario -> {
+            UsuarioResponseDTO dto = new UsuarioResponseDTO();
+            dto.setId(usuario.getId());
+            dto.setNombre(usuario.getNombre());
+            dto.setApellidoPaterno(usuario.getApellidoPaterno());
+            dto.setApellidoMaterno(usuario.getApellidoMaterno());
+            dto.setCorreo(usuario.getCorreo());
+            dto.setRol(usuario.getRol());
+            dto.setMatricula(usuario.getMatricula());
+
+            if (usuario.getProgramas() != null && !usuario.getProgramas().isEmpty()) {
+                List<Long> programaIds = usuario.getProgramas().stream()
+                        .map(ProgramaUsuario::getProgramaId)
+                        .collect(Collectors.toList());
+
+                List<ProgramaDTO> programas = programaFeignClient.obtenerProgramasPorIds(programaIds)
+                        .stream()
+                        .map(p -> {
+                            ProgramaDTO pdto = new ProgramaDTO();
+                            pdto.setId(p.getId());
+                            pdto.setNombre(p.getNombre());
+                            return pdto;
+                        }).collect(Collectors.toList());
+
+                dto.setProgramas(programas);
+            }
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
 
     @Transactional
     public UsuarioEntity saveUsuarioConProgramas(UsuarioDTO usuarioDTO) {
@@ -76,4 +114,38 @@ public class UsuarioService {
         return true;
     }
 
+    public UsuarioResponseDTO getUsuarioDTOById(int id) {
+        UsuarioEntity usuario = usuarioRepository.findById(id).orElse(null);
+        if (usuario == null)
+            return null;
+
+        UsuarioResponseDTO dto = new UsuarioResponseDTO();
+        dto.setId(usuario.getId());
+        dto.setNombre(usuario.getNombre());
+        dto.setApellidoPaterno(usuario.getApellidoPaterno());
+        dto.setApellidoMaterno(usuario.getApellidoMaterno());
+        dto.setCorreo(usuario.getCorreo());
+        dto.setRol(usuario.getRol());
+        dto.setMatricula(usuario.getMatricula());
+
+        if (usuario.getProgramas() != null && !usuario.getProgramas().isEmpty()) {
+            List<Long> programaIds = usuario.getProgramas().stream()
+                    .map(ProgramaUsuario::getProgramaId)
+                    .collect(Collectors.toList());
+
+            List<ProgramaDTO> programas = programaFeignClient.obtenerProgramasPorIds(programaIds)
+                    .stream()
+                    .map(p -> {
+                        ProgramaDTO pdto = new ProgramaDTO();
+                        pdto.setId(p.getId());
+                        pdto.setNombre(p.getNombre());
+                        return pdto;
+                    }).collect(Collectors.toList());
+
+            dto.setProgramas(programas);
+        }
+
+        return dto;
+    }
+    
 }
