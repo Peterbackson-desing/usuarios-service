@@ -1,10 +1,10 @@
 package com.idgs12.usuarios.usuarios.services;
 
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.idgs12.usuarios.usuarios.dto.UsuarioDTO;
 
 import com.idgs12.usuarios.usuarios.dto.ProgramaDTO;
 import com.idgs12.usuarios.usuarios.dto.UsuarioDTO;
@@ -12,10 +12,8 @@ import com.idgs12.usuarios.usuarios.dto.UsuarioResponseDTO;
 import com.idgs12.usuarios.usuarios.repository.UsuarioRepository;
 import com.idgs12.usuarios.usuarios.repository.ProgramaUsuarioRepository;
 import com.idgs12.usuarios.usuarios.FeignClient.ProgramaFeignClient;
-
 import com.idgs12.usuarios.usuarios.entity.UsuarioEntity;
 import com.idgs12.usuarios.usuarios.entity.ProgramaUsuario;
-
 import java.util.List;
 
 @Service
@@ -101,6 +99,21 @@ public class UsuarioService {
 
         return savedUsuario;
     }
+
+    // Método para deshabilitar usuario
+    @Transactional
+    public boolean deshabilitarUsuario(int id) {
+        UsuarioEntity usuario = usuarioRepository.findById(id).orElse(null);
+        if (usuario == null) {
+            return false;
+        }
+
+        usuario.setActivo(false); // Cambiamos el estado a false
+        usuarioRepository.save(usuario);
+
+        return true;
+    }
+
     public UsuarioResponseDTO getUsuarioDTOById(int id) {
         UsuarioEntity usuario = usuarioRepository.findById(id).orElse(null);
         if (usuario == null)
